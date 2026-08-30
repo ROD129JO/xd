@@ -1,3 +1,4 @@
+
 # For building with minimal manifest
 ALLOW_MISSING_DEPENDENCIES :=true
 
@@ -10,8 +11,8 @@ TARGET_BOARD_PLATFORM := msm8917
 TARGET_BOARD_PLATFORM_GPU := qcom-adreno308
 
 # Flags
-# TARGET_GLOBAL_CFLAGS += -mfpu=neon -mfloat-abi=softfp
-# TARGET_GLOBAL_CPPFLAGS += -mfpu=neon -mfloat-abi=softfp
+TARGET_GLOBAL_CFLAGS += -mfpu=neon -mfloat-abi=softfp
+TARGET_GLOBAL_CPPFLAGS += -mfpu=neon -mfloat-abi=softfp
 
 #Architecture
 TARGET_ARCH := arm
@@ -51,7 +52,6 @@ TW_MAX_BRIGHTNESS := 255
 TARGET_RECOVERY_QCOM_RTC_FIX := true
 TW_CRYPTO_USE_SYSTEM_VOLD := true
 TW_IGNORE_MISC_WIPE_DATA := true
-TW_CRYPTO_USE_SYSTEM_VOLD := true
 TW_INCLUDE_CRYPTO := true
 TW_INCLUDE_NTFS_3G := true
 TW_INPUT_BLACKLIST := "hbtp_vm"
