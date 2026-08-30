@@ -1,20 +1,22 @@
 name: Build TWRP for Samsung J6+
 
 on:
-  workflow_dispatch:
+  workflow_dispatch: # Permite compilar manualmente desde la web de GitHub
   push:
-    branches: [ "main", "master" ]
+    branches:
+      - main
+      - master
 
 jobs:
   build:
     name: Build TWRP
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
 
     steps:
-      - name: Descargar Device Tree
-        uses: actions/checkout@v3
+      - name: Descargar Device Tree (tu código)
+        uses: actions/checkout@v4
 
-      - name: Configurar entorno de compilacion
+      - name: Configurar entorno de compilación (Linux)
         run: |
           sudo apt-get update
           sudo apt-get install -y bc bison build-essential ccache curl flex g++-multilib gcc-multilib git gnupg gperf imagemagick lib32ncurses5-dev lib32readline-dev lib32z1-dev liblz4-tool libncurses5 libncurses5-dev libsdl1.2-dev libssl-dev libxml2 libxml2-utils lzop pngcrush rsync schedtool squashfs-tools xsltproc zip zlib1g-dev python2 python3
@@ -24,16 +26,17 @@ jobs:
           git config --global user.name "GitHub Action"
           git config --global user.email "action@github.com"
 
-      - name: Descargar codigo fuente de TWRP
+      - name: Descargar código fuente de TWRP (OmniROM 9.0)
         run: |
           mkdir ~/twrp
           cd ~/twrp
           ~/bin/repo init -u https://github.com/minimal-manifest-twrp/platform_manifest_twrp_omni.git -b twrp-9.0 --depth=1
           ~/bin/repo sync -c --no-clone-bundle --no-tags --optimized-fetch --prune --force-sync -j$(nproc)
 
-      - name: Mover tu Device Tree
+      - name: Mover tu Device Tree a la carpeta de compilación
         run: |
           mkdir -p ~/twrp/device/samsung/j6primelte
+          # Copia todos los archivos de tu repositorio local a la ruta esperada
           shopt -s extglob
           cp -r ${GITHUB_WORKSPACE}/* ~/twrp/device/samsung/j6primelte/
           
@@ -45,19 +48,19 @@ jobs:
           lunch omni_j6primelte-eng
           mka recoveryimage
           
-      - name: Empaquetar como .TAR para Odin
+      - name: Empaquetar como .TAR (Para flashear por Odin)
         run: |
           cd ~/twrp/out/target/product/j6primelte
           tar -cvf recovery.tar recovery.img
 
-      - name: Subir imagen IMG a GitHub
-        uses: actions/upload-artifact@v3
+      - name: Subir imagen .IMG
+        uses: actions/upload-artifact@v4
         with:
           name: twrp-j6primelte-img
           path: ~/twrp/out/target/product/j6primelte/recovery.img
 
-      - name: Subir archivo TAR a GitHub
-        uses: actions/upload-artifact@v3
+      - name: Subir archivo .TAR para Odin
+        uses: actions/upload-artifact@v4
         with:
           name: twrp-j6primelte-tar
           path: ~/twrp/out/target/product/j6primelte/recovery.tar
