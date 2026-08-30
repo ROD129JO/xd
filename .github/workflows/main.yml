@@ -1,11 +1,10 @@
-name: Build TWRP for Samsung J6+
+name: Build TWRP
 
 on:
-  workflow_dispatch: # Permite compilar manualmente desde la web de GitHub
   push:
     branches:
       - main
-      - master
+  workflow_dispatch:
 
 jobs:
   build:
@@ -13,54 +12,53 @@ jobs:
     runs-on: ubuntu-22.04
 
     steps:
-      - name: Descargar Device Tree (tu código)
+      - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Configurar entorno de compilación (Linux)
+      - name: Set up Python 2
         run: |
           sudo apt-get update
-          sudo apt-get install -y bc bison build-essential ccache curl flex g++-multilib gcc-multilib git gnupg gperf imagemagick lib32ncurses5-dev lib32readline-dev lib32z1-dev liblz4-tool libncurses5 libncurses5-dev libsdl1.2-dev libssl-dev libxml2 libxml2-utils lzop pngcrush rsync schedtool squashfs-tools xsltproc zip zlib1g-dev python2 python3
+          sudo apt-get install -y python2
+          sudo ln -sf /usr/bin/python2 /usr/bin/python
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y git-core gnupg flex bison build-essential zip curl zlib1g-dev gcc-multilib g++-multilib libc6-dev-i386 lib32ncurses5-dev x11proto-core-dev libx11-dev lib32z1-dev libgl1-mesa-dev libxml2-utils xsltproc unzip fontconfig rsync ccache default-jdk
+          
+      - name: Install repo tool
+        run: |
           mkdir -p ~/bin
           curl https://storage.googleapis.com/git-repo-downloads/repo > ~/bin/repo
           chmod a+x ~/bin/repo
-          git config --global user.name "GitHub Action"
-          git config --global user.email "action@github.com"
+          echo "$HOME/bin" >> $GITHUB_PATH
 
-      - name: Descargar código fuente de TWRP (OmniROM 9.0)
+      - name: Initialize repo and sync source
         run: |
           mkdir ~/twrp
           cd ~/twrp
-          ~/bin/repo init -u https://github.com/minimal-manifest-twrp/platform_manifest_twrp_omni.git -b twrp-9.0 --depth=1
-          ~/bin/repo sync -c --no-clone-bundle --no-tags --optimized-fetch --prune --force-sync -j$(nproc)
+          git config --global user.name "GitHub Action"
+          git config --global user.email "action@github.com"
+          repo init --depth=1 -u https://github.com/minimal-manifest-twrp/platform_manifest_twrp_omni.git -b twrp-9.0
+          repo sync -j$(nproc --all) --force-sync --no-clone-bundle --no-tags
 
-      - name: Mover tu Device Tree a la carpeta de compilación
+      - name: Copy device tree
         run: |
           mkdir -p ~/twrp/device/samsung/j6primelte
-          # Copia todos los archivos de tu repositorio local a la ruta esperada
-          shopt -s extglob
-          cp -r ${GITHUB_WORKSPACE}/* ~/twrp/device/samsung/j6primelte/
-          
-      - name: Compilar TWRP
+          cp -r $GITHUB_WORKSPACE/* ~/twrp/device/samsung/j6primelte/
+
+      - name: Build TWRP
         run: |
           cd ~/twrp
           export ALLOW_MISSING_DEPENDENCIES=true
           source build/envsetup.sh
           lunch omni_j6primelte-eng
           mka recoveryimage
-          
-      - name: Empaquetar como .TAR (Para flashear por Odin)
-        run: |
-          cd ~/twrp/out/target/product/j6primelte
-          tar -cvf recovery.tar recovery.img
 
-      - name: Subir imagen .IMG
+      - name: Upload Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: twrp-j6primelte-img
-          path: ~/twrp/out/target/product/j6primelte/recovery.img
-
-      - name: Subir archivo .TAR para Odin
-        uses: actions/upload-artifact@v4
-        with:
-          name: twrp-j6primelte-tar
-          path: ~/twrp/out/target/product/j6primelte/recovery.tar
+          name: TWRP-Samsung-J6PrimeLTE
+          path: |
+            /home/runner/twrp/out/target/product/j6primelte/recovery.img
+            /home/runner/twrp/out/target/product/j6primelte/recovery.tar
