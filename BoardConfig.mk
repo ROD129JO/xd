@@ -1,4 +1,3 @@
-
 # For building with minimal manifest
 ALLOW_MISSING_DEPENDENCIES :=true
 
@@ -11,8 +10,8 @@ TARGET_BOARD_PLATFORM := msm8917
 TARGET_BOARD_PLATFORM_GPU := qcom-adreno308
 
 # Flags
-TARGET_GLOBAL_CFLAGS += -mfpu=neon -mfloat-abi=softfp
-TARGET_GLOBAL_CPPFLAGS += -mfpu=neon -mfloat-abi=softfp
+# TARGET_GLOBAL_CFLAGS += -mfpu=neon -mfloat-abi=softfp
+# TARGET_GLOBAL_CPPFLAGS += -mfpu=neon -mfloat-abi=softfp
 
 #Architecture
 TARGET_ARCH := arm
